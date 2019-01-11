@@ -74,6 +74,7 @@ class Risk(object):
         self._annual_tracking_error = None
         self._downside_risk = None
         self._annual_downside_risk = None
+        self._var = None
         self._calmar = None
         self._avg_excess_return = None
         self._avg_excess_benchmark_return = None
@@ -300,7 +301,7 @@ class Risk(object):
             self._sortino = np.nan
             return np.nan
 
-        self._sortino = np.sqrt(self._annual_factor) * \
+        self._sortino = self._annual_factor * \
             self.avg_excess_benchmark_return/self.annual_downside_risk
         return self._sortino
 
@@ -321,6 +322,22 @@ class Risk(object):
 
         return self._calmar
 
+    @property
+    def var(self):
+        """ default: 95% VaR """
+        if self._var is not None:
+            return self._var
+
+        self._var = self.param_var(0.05)
+        return self._var
+
+    def param_var(self, alpha):
+        import scipy.stats as stats
+        log_return = np.log1p(self._portfolio)
+        mean = np.mean(log_return)
+        std = np.std(log_return)
+        return np.expm1(-stats.norm(mean, std).ppf(alpha))
+
     def all(self):
         result = {
             'return': self.return_rate,
@@ -338,6 +355,7 @@ class Risk(object):
             'sortino': self.sortino,
             'tracking_error': self.tracking_error,
             'calmar': self.calmar,
+            'VaR': self.var,
         }
 
         # now all are done, _portfolio, _benchmark not needed now
