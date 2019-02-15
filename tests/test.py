@@ -1,54 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import rqdata
 import rqrisk
-from rqdata import *
 from numpy.testing import assert_almost_equal
 import pandas as pd
 import numpy as np
-
-#rqdata.init()
-#
-#def show_risk(r):
-#    print('return           =', r.return_rate)
-#    print('annual return    =', r.annual_return)
-#    print('alpha            =', r.alpha)
-#    print('beta             =', r.beta)
-#    print('sharpe           =', r.sharpe)
-#    print('benchmark return =', r.benchmark_return)
-#    print('b annual_return  =', r.benchmark_annual_return)
-#    print('max_drawdown     =', r.max_drawdown)
-#    print('volatility       =', r.volatility)
-#    print('annual volatility=', r.annual_volatility)
-#    print('info. ratio      =', r.information_ratio)
-#    print('downside risk    =', r.downside_risk)
-#    print('sortino          =', r.sortino)
-#    print('tracking error   =', r.tracking_error)
-#    print('calmar           =', r.calmar)
-#    print('VaR              =', r.var)
-#    print('\n')
-#
-#
-#p = industry('C27')
-#pr = get_daily_returns(p, start_date='2012-01-01', end_date='2013-01-01')
-#pr.fillna(0, inplace=True)
-#pr = pr.sum(axis=1) / len(p)
-#
-#hs300 = index_components('000300.XSHG')
-#br = get_daily_returns(hs300, start_date='2012-01-01', end_date='2013-01-01')
-#br.fillna(0, inplace=True)
-#br = br.sum(axis=1) / len(hs300)
-#
-#print('risk of pr, pr:')
-#show_risk(rqrisk.Risk(pr, pr, 0))
-#print('risk of br, br:')
-#show_risk(rqrisk.Risk(br, br, 0))
-#
-#print('risk of pr, br:')
-#show_risk(rqrisk.Risk(pr, br, 0))
-
-
 
 # Simple benchmark, no drawdown
 simple_benchmark = pd.Series(
