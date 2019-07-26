@@ -405,6 +405,11 @@ class Risk(object):
             'sortino': self.sortino,
             'tracking_error': self.tracking_error,
             'calmar': self.calmar,
+            'excess_return': self.excess_return_rate,
+            'excess_annual_return': self.excess_annual_return,
+            'excess_annual_volatility': self.excess_annual_volatility,
+            'excess_sharpe': self.excess_sharpe,
+            'excess_max_drawdown': self.excess_max_drawdown
         }
 
         # now all are done, _portfolio, _benchmark not needed now
