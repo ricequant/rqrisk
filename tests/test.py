@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+<<<<<<< HEAD
 import rqdata
 import rqrisk
 from rqdata import *
+=======
+import rqrisk
+>>>>>>> master
 from numpy.testing import assert_almost_equal
 import pandas as pd
 import numpy as np
 
+<<<<<<< HEAD
 #rqdata.init()
 #
 #def show_risk(r):
@@ -50,6 +55,8 @@ import numpy as np
 
 
 
+=======
+>>>>>>> master
 # Simple benchmark, no drawdown
 simple_benchmark = pd.Series(
     np.array([1., 1., 1., 1., 1., 1., 1., 1., 1.]) / 100,

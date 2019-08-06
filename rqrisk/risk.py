@@ -57,7 +57,6 @@ class Risk(object):
 
         self._alpha = None
         self._beta = None
-        self._avg_return = np.mean(self._portfolio)
         self._sharpe = None
         self._return = np.expm1(np.log1p(self._portfolio).sum())
         self._annual_return = (1 + self._return) ** (self._annual_factor / self._period_count) - 1
@@ -75,16 +74,9 @@ class Risk(object):
         self._annual_tracking_error = None
         self._downside_risk = None
         self._annual_downside_risk = None
+        self._var = None
         self._calmar = None
         self._avg_excess_return = None
-
-        self._excess_portfolio = daily_returns - benchmark_daily_returns
-        self._excess_return_rate = None
-        self._excess_annual_return = None
-        self._excess_volatility = None
-        self._excess_annual_volatility = None
-        self._excess_sharpe = None
-        self._excess_max_drawdown = None
 
     @property
     def return_rate(self):
@@ -140,8 +132,7 @@ class Risk(object):
     def avg_excess_return(self):
         if self._avg_excess_return is not None:
             return self._avg_excess_return
-        # self._avg_excess_return = 1.0 / len(self._portfolio) * (self._portfolio - self._daily_risk_free_rate).sum()
-        self._avg_excess_return = np.mean(self._excess_portfolio)
+        self._avg_excess_return = np.mean(self._portfolio) - self._daily_risk_free_rate
         return self._avg_excess_return
 
     def _calc_volatility(self):
@@ -214,12 +205,9 @@ class Risk(object):
             self._annual_tracking_error = 0.
             return 0
 
-        # sum_mean_squares = np.sum(np.square(active_return))
-        # self._avg_tracking_return = np.mean(np.sum(active_return))
-        self._avg_tracking_return = np.mean(self._excess_portfolio)
-        # self._tracking_error = (sum_mean_squares ** 0.5) * ((self._annual_factor / (len(active_return) - 1)) ** 0.5)
-        self._tracking_error = self._excess_portfolio.std(ddof=1)
-        # self._annual_tracking_error = (sum_mean_squares ** 0.5) / (self._annual_factor ** 0.5)
+        active_return = self._portfolio - self._benchmark
+        self._avg_tracking_return = np.mean(active_return)
+        self._tracking_error = active_return.std(ddof=1)
         self._annual_tracking_error = self._tracking_error * (self._annual_factor ** 0.5)
 
     @property
@@ -264,25 +252,10 @@ class Risk(object):
             return np.nan
 
         std_excess_return = np.sqrt((1 / (len(self._portfolio) - 1)) * np.sum(
-            (self._portfolio - self._daily_risk_free_rate - self._avg_return) ** 2
-        ))
-        self._sharpe = np.sqrt(self._annual_factor) * self._avg_return / std_excess_return
-        return self._sharpe
-
-    @property
-    def excess_sharpe(self):
-        if self._excess_sharpe is not None:
-            return self._excess_sharpe
-
-        if self.volatility == 0:
-            self._excess_sharpe = np.nan
-            return np.nan
-
-        std_excess_return = np.sqrt((1 / (len(self._portfolio) - 1)) * np.sum(
             (self._portfolio - self._daily_risk_free_rate - self.avg_excess_return) ** 2
         ))
-        self._excess_sharpe = np.sqrt(self._annual_factor) * self.avg_excess_return / std_excess_return
-        return self._excess_sharpe
+        self._sharpe = np.sqrt(self._annual_factor) * self.avg_excess_return / std_excess_return
+        return self._sharpe
 
     def _calc_downside_risk(self):
         if len(self._portfolio) < 2:
@@ -292,8 +265,6 @@ class Risk(object):
         diff = self._portfolio - self._benchmark
         diff[diff > 0] = 0.
         sum_mean_squares = np.sum(np.square(diff))
-        # self._annual_downside_risk = (sum_mean_squares ** 0.5) * \
-        #                              ((self._annual_factor / (len(self._portfolio) - 1)) ** 0.5)
         self._downside_risk = (sum_mean_squares / (len(diff) - 1)) ** 0.5
         self._annual_downside_risk = self._downside_risk * (self._annual_factor ** 0.5)
 
@@ -322,7 +293,8 @@ class Risk(object):
             self._sortino = np.nan
             return np.nan
 
-        self._sortino = np.sqrt(self._annual_factor) * self.avg_excess_return / self.annual_downside_risk
+        self._sortino = self._annual_factor * \
+            self.avg_excess_return/self.annual_downside_risk
         return self._sortino
 
     @property
@@ -343,50 +315,20 @@ class Risk(object):
         return self._calmar
 
     @property
-    def excess_return_rate(self):
-        if self._excess_return_rate is None:
-            self._excess_return_rate = np.expm1(np.log1p(self._excess_portfolio).sum())
-        return self._excess_return_rate
+    def var(self):
+        """ default: 95% VaR """
+        if self._var is not None:
+            return self._var
 
-    @property
-    def excess_annual_return(self):
-        if self._excess_annual_return is None:
-            self._excess_annual_return = (1 + self._excess_return_rate) ** (self._annual_factor / self._period_count) - 1
-        return self._excess_annual_return
+        self._var = self.param_var(0.05)
+        return self._var
 
-    def _calc_excess_volatility(self):
-        if len(self._excess_portfolio) > 1:
-            self._excess_volatility = self._excess_portfolio.std(ddof=1)
-            self._excess_annual_volatility = self._excess_volatility * (self._annual_factor ** 0.5)
-        else:
-            self._excess_volatility = 0
-            self._excess_annual_volatility = 0.
-
-    @property
-    def excess_volatility(self):
-        if self._excess_volatility is None:
-            self._calc_excess_volatility()
-        return self._excess_volatility
-
-    @property
-    def excess_annual_volatility(self):
-        if self._excess_annual_volatility is None:
-            self._calc_excess_volatility()
-        return self._excess_annual_volatility
-
-    @property
-    def excess_max_drawdown(self):
-        if self._excess_max_drawdown is not None:
-            return self._excess_max_drawdown
-
-        if len(self._excess_portfolio) < 1:
-            self._excess_max_drawdown = np.nan
-            return np.nan
-
-        df_cum = np.exp(np.log1p(self._excess_portfolio).cumsum())
-        max_return = np.maximum.accumulate(df_cum)
-        self._excess_max_drawdown = ((df_cum - max_return) / max_return).min()
-        return abs(self._excess_max_drawdown)
+    def param_var(self, alpha):
+        import scipy.stats as stats
+        log_return = np.log1p(self._portfolio)
+        mean = np.mean(log_return)
+        std = np.std(log_return)
+        return np.expm1(-stats.norm(mean, std).ppf(alpha))
 
     def all(self):
         result = {
@@ -405,6 +347,7 @@ class Risk(object):
             'sortino': self.sortino,
             'tracking_error': self.tracking_error,
             'calmar': self.calmar,
+            'VaR': self.var,
         }
 
         # now all are done, _portfolio, _benchmark not needed now
