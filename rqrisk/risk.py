@@ -324,15 +324,10 @@ class Risk(object):
         if self._calmar is not None:
             return self._calmar
 
-        max_dd = self.max_drawdown
-        if max_dd < 0:
-            tmp = self._annual_return / -max_dd
-            if np.isinf(tmp):
-                self._calmar = np.nan
-            else:
-                self._calmar = tmp
+        if np.isclose(self.max_drawdown, 0):
+            self._calmar = np.inf * np.sign(self._annual_return)
         else:
-            self._calmar = np.nan
+            self._calmar = self._annual_return / -self.max_drawdown
 
         return self._calmar
 
