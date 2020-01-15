@@ -205,8 +205,8 @@ class Risk(object):
 
         df_cum = np.exp(np.log1p(self._portfolio).cumsum())
         max_return = np.maximum.accumulate(df_cum)
-        self._max_drawdown = ((df_cum - max_return) / max_return).min()
-        return abs(self._max_drawdown)
+        self._max_drawdown = abs(((df_cum - max_return) / max_return).min())
+        return self._max_drawdown
 
     def _calc_tracking_error(self):
         if len(self._portfolio) < 2:
