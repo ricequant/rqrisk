@@ -1,2 +1,1 @@
-from .risk import Risk, DAILY, WEEKLY, MONTHLY
-
+from .risk import Risk, DAILY, WEEKLY, MONTHLY, YEARLY
