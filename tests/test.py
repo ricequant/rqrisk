@@ -54,7 +54,7 @@ def test_return():
         -0.0)
     assert_almost_equal(
         rqrisk.Risk(negative_returns, simple_benchmark, 0).max_drawdown,
-        -0.36590730349873601)
+        0.36590730349873601)
     assert_almost_equal(
         rqrisk.Risk(one_return, one_benchmark, 0).max_drawdown,
         0)

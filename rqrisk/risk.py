@@ -199,11 +199,8 @@ class Risk(object):
         if self._max_drawdown is not None:
             return self._max_drawdown
 
-        if len(self._portfolio) < 1:
-            self._max_drawdown = np.nan
-            return np.nan
-
-        df_cum = np.exp(np.log1p(self._portfolio).cumsum())
+        portfolio = [1] + list(self._portfolio)
+        df_cum = np.exp(np.log1p(portfolio).cumsum())
         max_return = np.maximum.accumulate(df_cum)
         self._max_drawdown = abs(((df_cum - max_return) / max_return).min())
         return self._max_drawdown
