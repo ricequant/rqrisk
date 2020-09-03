@@ -313,7 +313,7 @@ class Risk(object):
             self._sortino = np.nan
             return np.nan
 
-        self._sortino = np.sqrt(self._annual_factor) * self._avg_excess_return / self.annual_downside_risk
+        self._sortino = self._annual_factor * self._avg_excess_return / self.annual_downside_risk
         return self._sortino
 
     @property
