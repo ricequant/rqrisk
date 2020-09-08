@@ -282,7 +282,7 @@ class Risk(object):
             self._annual_downside_risk = 0.
             self._downside_risk = 0.
             return 0
-        diff = self._portfolio - self._risk_free_rate
+        diff = self._portfolio - self._daily_risk_free_rate
         diff[diff > 0] = 0.
         sum_mean_squares = np.sum(np.square(diff))
         self._downside_risk = (sum_mean_squares / (len(diff) - 1)) ** 0.5
