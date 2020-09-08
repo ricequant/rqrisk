@@ -8,7 +8,7 @@ def readfile(filename):
 
 setup(
     name='rqrisk',
-    version='0.0.14a1',
+    version='0.0.14a2',
     url="https://www.ricequant.com/",
     packages=find_packages(),
     author="Ricequant",
