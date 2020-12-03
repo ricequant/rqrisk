@@ -371,8 +371,8 @@ class Risk(object):
 
         df_cum = np.exp(np.log1p(self._excess_portfolio).cumsum())
         max_return = np.maximum.accumulate(df_cum)
-        self._excess_max_drawdown = ((df_cum - max_return) / max_return).min()
-        return abs(self._excess_max_drawdown)
+        self._excess_max_drawdown = -((df_cum - max_return) / max_return).min()
+        return self._excess_max_drawdown
 
     @property
     def var(self):
