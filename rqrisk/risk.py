@@ -54,6 +54,7 @@ class Risk(object):
         self._risk_free_rate = risk_free_rate
         self._annual_factor = _annual_factor(period)
         self._daily_risk_free_rate = self._risk_free_rate / self._annual_factor
+        self._win_rate = (daily_returns > benchmark_daily_returns).sum() / self._period_count
 
         self._alpha = None
         self._beta = None
@@ -390,6 +391,10 @@ class Risk(object):
         std = np.std(log_return)
         return np.expm1(-stats.norm(mean, std).ppf(alpha))
 
+    @property
+    def win_rate(self):
+        return self._win_rate
+
     def all(self):
         result = {
             'return': self.return_rate,
@@ -412,7 +417,8 @@ class Risk(object):
             'excess_annual_return': self.excess_annual_return,
             'excess_annual_volatility': self.excess_annual_volatility,
             'excess_sharpe': self.excess_sharpe,
-            'excess_max_drawdown': self.excess_max_drawdown
+            'excess_max_drawdown': self.excess_max_drawdown,
+            'win_rate': self.win_rate,
         }
 
         # now all are done, _portfolio, _benchmark not needed now
