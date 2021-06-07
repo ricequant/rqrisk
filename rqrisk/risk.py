@@ -327,7 +327,7 @@ class Risk(object):
         if np.isclose(self.max_drawdown, 0):
             self._calmar = np.inf * np.sign(self._annual_return)
         else:
-            self._calmar = self._annual_return / -self.max_drawdown
+            self._calmar = self._annual_return / self.max_drawdown
 
         return self._calmar
 
