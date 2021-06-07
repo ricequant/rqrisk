@@ -54,17 +54,22 @@ class Risk(object):
         self._risk_free_rate = risk_free_rate
         self._annual_factor = _annual_factor(period)
         self._daily_risk_free_rate = self._risk_free_rate / self._annual_factor
-        self._win_rate = len(daily_returns[daily_returns > benchmark_daily_returns]) / self._period_count
+        if self._period_count == 0:
+            self._win_rate = self._annual_return = self._benchmark_annual_return = np.nan
+        else:
+            self._win_rate = len(daily_returns[daily_returns > benchmark_daily_returns]) / self._period_count
+            self._annual_return = (1 + self._return) ** (self._annual_factor / self._period_count) - 1
+            self._benchmark_annual_return = (1 + self._benchmark_return) ** \
+                                            (self._annual_factor / self._period_count) - 1
 
         self._alpha = None
         self._beta = None
         self._avg_excess_return = np.mean(daily_returns) - self._daily_risk_free_rate
         self._sharpe = None
         self._return = np.expm1(np.log1p(daily_returns).sum())
-        self._annual_return = (1 + self._return) ** (self._annual_factor / self._period_count) - 1
+
         self._benchmark_return = np.expm1(np.log1p(self._benchmark).sum())
-        self._benchmark_annual_return = (1+self._benchmark_return) ** \
-                                        (self._annual_factor / self._period_count) - 1
+
         self._max_drawdown = None
         self._volatility = None
         self._annual_volatility = None
