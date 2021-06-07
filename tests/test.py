@@ -16,6 +16,14 @@ zero_benchmark = pd.Series(
     np.array([0]*9),
     index=pd.date_range('2000-1-30', periods=9, freq='D'))
 
+simple_weekly_benchamrk = pd.Series(
+    np.array([1., 1., 1., 1., 1., 1., 1., 1., 1.]) / 100,
+    index=pd.date_range('2000-1-30', periods=9, freq='W'))
+
+simple_monthly_benchamrk = pd.Series(
+    np.array([1., 1., 1., 1., 1., 1., 1., 1., 1.]) / 100,
+    index=pd.date_range('2000-1-30', periods=9, freq='M'))
+
 # All positive returns, small variance
 positive_returns = pd.Series(
     np.array([1., 2., 1., 1., 1., 1., 1., 1., 1.]) / 100,
@@ -62,22 +70,22 @@ def test_return():
 
 def test_annual_return():
     assert_almost_equal(
-        rqrisk.Risk(weekly_returns, simple_benchmark, 0, rqrisk.WEEKLY).annual_return,
+        rqrisk.Risk(weekly_returns, simple_weekly_benchamrk, 0, rqrisk.WEEKLY).annual_return,
         0.24690830513998208)
     assert_almost_equal(
-        rqrisk.Risk(monthly_returns, simple_benchmark, 0, rqrisk.MONTHLY).annual_return,
+        rqrisk.Risk(monthly_returns, simple_monthly_benchamrk, 0, rqrisk.MONTHLY).annual_return,
         0.052242061386048144)
 
 
 def test_calmar():
     assert_almost_equal(
         rqrisk.Risk(one_return, one_benchmark, 0).calmar,
-        np.nan)
+        np.inf)
     assert_almost_equal(
-        rqrisk.Risk(weekly_returns, simple_benchmark, 0, rqrisk.WEEKLY).calmar,
+        rqrisk.Risk(weekly_returns, simple_weekly_benchamrk, 0, rqrisk.WEEKLY).calmar,
         2.4690830513998208)
     assert_almost_equal(
-        rqrisk.Risk(monthly_returns, simple_benchmark, 0, rqrisk.MONTHLY).calmar,
+        rqrisk.Risk(monthly_returns, simple_monthly_benchamrk, 0, rqrisk.MONTHLY).calmar,
         0.52242061386048144)
 
 
@@ -86,10 +94,10 @@ def test_annual_volatity():
         rqrisk.Risk(simple_benchmark, simple_benchmark, 0).annual_volatility,
         0)
     assert_almost_equal(
-        rqrisk.Risk(weekly_returns, simple_benchmark, 0, rqrisk.WEEKLY).annual_volatility,
+        rqrisk.Risk(weekly_returns, simple_weekly_benchamrk, 0, rqrisk.WEEKLY).annual_volatility,
         0.38851569394870583)
     assert_almost_equal(
-        rqrisk.Risk(monthly_returns, simple_benchmark, 0, rqrisk.MONTHLY).annual_volatility,
+        rqrisk.Risk(monthly_returns, simple_monthly_benchamrk, 0, rqrisk.MONTHLY).annual_volatility,
         0.18663690238892558)
 
 
