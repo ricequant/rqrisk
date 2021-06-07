@@ -1,4 +1,5 @@
 # Copyright 2015 Ricequant All Rights Reserved
+import versioneer
 from setuptools import setup, find_packages
 
 
@@ -8,7 +9,8 @@ def readfile(filename):
 
 setup(
     name='rqrisk',
-    version='0.0.14',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     url="https://www.ricequant.com/",
     packages=find_packages(),
     author="Ricequant",
