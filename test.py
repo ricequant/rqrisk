@@ -121,42 +121,29 @@ def _r(returns, benchmark_returns, risk_free_rate, period=DAILY):
 
 
 def test_downside_risk():
-    assert_almost_equal(_r(one_return, None, 0).downside_risk, 0.)
-    assert_almost_equal(_r(weekly_returns, None, 0, WEEKLY).downside_risk, 0.03807886552931954)
-    assert_almost_equal(_r(weekly_returns, None, 0.052, WEEKLY).downside_risk, 0.0385405630472623)
-    assert_almost_equal(_r(monthly_returns, None, 0, MONTHLY).downside_risk, 0.03807886552931954)
-    assert_almost_equal(_r(monthly_returns, None, 0.036, MONTHLY).downside_risk, 0.03947625868797599)
+    def _assert(returns, risk_free_rate, period, desired_downside_risk, desired_annual_downside_risk):
+        r = _r(returns, None, risk_free_rate, period)
+        assert_almost_equal(r.downside_risk, desired_downside_risk)
+        assert_almost_equal(r.annual_downside_risk, desired_annual_downside_risk)
+
+    _assert(one_return, 0, DAILY, 0., 0.)
+    _assert(weekly_returns, 0, WEEKLY, 0.03807886552931954, 0.2745906043549196)
+    _assert(weekly_returns, 0.052, WEEKLY, 0.0385405630472623, 0.2779199525043137)
+    _assert(monthly_returns, 0, MONTHLY, 0.03807886552931954, 0.1319090595827292)
+    _assert(monthly_returns, 0.036, MONTHLY, 0.03947625868797599, 0.13674977148061343)
 
 
 def test_sortino():
-    assert_almost_equal(
-        rqrisk.Risk(one_return, one_benchmark, 0).sortino,
-        np.nan)
-    assert_almost_equal(
-        rqrisk.Risk(positive_returns,
-                    pd.Series(zero_benchmark.values, index=positive_returns.index),
-                    0).sortino,
-        np.inf)
-    assert_almost_equal(
-        rqrisk.Risk(negative_returns,
-                    pd.Series(zero_benchmark.values, index=negative_returns.index),
-                    0).sortino,
-        -13.532743075043401)
-    assert_almost_equal(
-        rqrisk.Risk(simple_benchmark,
-                    pd.Series(zero_benchmark.values, index=simple_benchmark.index),
-                    0).sortino,
-        np.inf)
-    assert_almost_equal(
-        rqrisk.Risk(weekly_returns,
-                    pd.Series(zero_benchmark.values, index=weekly_returns.index),
-                    0, rqrisk.WEEKLY).sortino,
-        0.50690062680370862)
-    assert_almost_equal(
-        rqrisk.Risk(monthly_returns,
-                    pd.Series(zero_benchmark.values, index=monthly_returns.index),
-                    0, rqrisk.MONTHLY).sortino,
-        0.11697706772393276)
+    def _assert(returns, risk_free_rate, period, desired_sortino):
+        assert_almost_equal(_r(returns, None, risk_free_rate, period).sortino, desired_sortino)
+
+    _assert(one_return, 0, DAILY, np.nan)
+    _assert(positive_returns, 0, DAILY, np.nan)
+    _assert(negative_returns, 0.0252, DAILY, -12.765908412673111)
+    _assert(weekly_returns, 0, WEEKLY, 1.0520712810533321)
+    _assert(weekly_returns, 0.052, WEEKLY, 0.8523637355083818)
+    _assert(monthly_returns, 0, MONTHLY, 0.505398695719269)
+    _assert(monthly_returns, 0.036, MONTHLY, 0.22425387870585353)
 
 
 def test_information_ratio():
