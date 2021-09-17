@@ -146,15 +146,14 @@ def test_sortino():
     _assert(monthly_returns, 0.036, MONTHLY, 0.22425387870585353)
 
 
-def test_information_ratio():
-    assert_almost_equal(
-        rqrisk.Risk(positive_returns,
-                    pd.Series(zero_benchmark.values, index=positive_returns.index),
-                    0).information_ratio,
-        3.3333333333333326)
-    assert_almost_equal(
-        rqrisk.Risk(negative_returns,
-                    pd.Series(zero_benchmark.values, index=negative_returns.index),
-                    0).information_ratio,
-        -1.5374844271921471)
+def test_tracking_error_information_ratio():
+    def _assert(returns, benchmark, period, desired_te, desired_annual_te, desired_ir):
+        r = _r(returns, pd.Series(benchmark.values, index=returns.index), 0, period)
+        assert_almost_equal(r.tracking_error, desired_te)
+        assert_almost_equal(r.annual_tracking_error, desired_annual_te)
+        assert_almost_equal(r.information_ratio, desired_ir)
 
+    _assert(positive_returns, zero_benchmark, DAILY, 0.0033333333333333335, 0.052915026221291815, 52.915026221291804)
+    _assert(positive_returns, simple_benchmark, DAILY, 0.003333333333333333, 0.05291502622129181, 5.291502622129182)
+    _assert(negative_returns, simple_benchmark, DAILY, 0.03179797338056485, 0.5047771785649584, -29.399110399937154)
+    _assert(weekly_returns, simple_benchmark, WEEKLY, 0.05387743291748205, 0.38851569394870583, -0.5948565648975399)
