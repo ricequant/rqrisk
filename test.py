@@ -8,6 +8,7 @@ import numpy as np
 import rqrisk
 from rqrisk import DAILY, WEEKLY, MONTHLY
 
+
 # Simple benchmark, no drawdown
 simple_benchmark = pd.Series(
     np.array([1., 1., 1., 1., 1., 1., 1., 1., 1.]) / 100,
@@ -57,6 +58,23 @@ one_benchmark = pd.Series(
 dot_one_benchmark = np.array([1.])/10
 
 
+volatile_returns = pd.Series(
+    np.array([-3, 1, 4, 5, -10, -1, 2, 0.5, 1]) / 100,
+    index=pd.date_range('2000-1-30', periods=9, freq='D')
+)
+
+volatile_benchmark = pd.Series(
+    np.array([1, 2, -5, 3, 10, -3, -1, 4, 1]) / 100,
+    index=pd.date_range('2000-1-30', periods=9, freq='D')
+)
+
+
+def _r(returns, benchmark_returns, risk_free_rate, period=DAILY):
+    if benchmark_returns is None:
+        benchmark_returns = pd.Series([np.nan] * len(returns), index=returns.index)
+    return rqrisk.Risk(returns, benchmark_returns, risk_free_rate, period)
+
+
 def test_return():
     assert_almost_equal(
         rqrisk.Risk(positive_returns, simple_benchmark, 0).max_drawdown,
@@ -76,6 +94,18 @@ def test_annual_return():
     assert_almost_equal(
         rqrisk.Risk(monthly_returns, simple_monthly_benchamrk, 0, rqrisk.MONTHLY).annual_return,
         0.052242061386048144)
+
+
+def test_beta_alpha():
+    def _assert(returns, benchmark, risk_free_rate, period, desired_beta, desired_alpha):
+        r = _r(returns, benchmark, risk_free_rate, period)
+        assert_almost_equal(r.beta, desired_beta)
+        assert_almost_equal(r.alpha, desired_alpha)
+
+    _assert(positive_returns, volatile_benchmark, 0.0252, DAILY, 0.004444444444444445, 2.7599786666666666)
+    _assert(volatile_returns, volatile_benchmark, 0.0252, DAILY, -0.6755555555555558, 2.087642666666667)
+    _assert(volatile_returns, volatile_benchmark, 0.052, WEEKLY, -0.6755555555555558, 0.35236740740740746)
+    _assert(volatile_returns, volatile_benchmark, 0.024, MONTHLY, -0.6755555555555558, 0.06120888888888891)
 
 
 def test_calmar():
@@ -112,12 +142,6 @@ def test_sharpe():
     assert_almost_equal(
         rqrisk.Risk(negative_returns, zero_benchmark, 0).sharpe,
         -24.406808633910085)
-
-
-def _r(returns, benchmark_returns, risk_free_rate, period=DAILY):
-    if benchmark_returns is None:
-        benchmark_returns = pd.Series([np.nan] * len(returns), index=returns.index)
-    return rqrisk.Risk(returns, benchmark_returns, risk_free_rate, period)
 
 
 def test_downside_risk():
