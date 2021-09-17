@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
-import rqrisk
 from numpy.testing import assert_almost_equal
 import pandas as pd
 import numpy as np
+
+import rqrisk
+from rqrisk import DAILY, WEEKLY, MONTHLY
 
 # Simple benchmark, no drawdown
 simple_benchmark = pd.Series(
@@ -113,30 +114,18 @@ def test_sharpe():
         -24.406808633910085)
 
 
+def _r(returns, benchmark_returns, risk_free_rate, period=DAILY):
+    if benchmark_returns is None:
+        benchmark_returns = pd.Series([np.nan] * len(returns), index=returns.index)
+    return rqrisk.Risk(returns, benchmark_returns, risk_free_rate, period)
+
+
 def test_downside_risk():
-    assert_almost_equal(
-        rqrisk.Risk(one_return, np.array([0]), 0).downside_risk,
-        0.0)
-    assert_almost_equal(
-        rqrisk.Risk(weekly_returns,
-                    pd.Series(zero_benchmark.values, index=weekly_returns.index),
-                    0, rqrisk.WEEKLY).downside_risk,
-        0.25888650451930134)
-    assert_almost_equal(
-        rqrisk.Risk(weekly_returns,
-                    pd.Series(dot_one_benchmark, index=weekly_returns.index),
-                    0, rqrisk.WEEKLY).downside_risk,
-        0.7733045971672482)
-    assert_almost_equal(
-        rqrisk.Risk(monthly_returns,
-                    pd.Series(zero_benchmark.values, index=monthly_returns.index),
-                    0, rqrisk.MONTHLY).downside_risk,
-        0.1243650540411842)
-    assert_almost_equal(
-        rqrisk.Risk(monthly_returns,
-                    pd.Series(dot_one_benchmark, index=monthly_returns.index),
-                    0, rqrisk.MONTHLY).downside_risk,
-        0.37148351242013422)
+    assert_almost_equal(_r(one_return, None, 0).downside_risk, 0.)
+    assert_almost_equal(_r(weekly_returns, None, 0, WEEKLY).downside_risk, 0.03807886552931954)
+    assert_almost_equal(_r(weekly_returns, None, 0.052, WEEKLY).downside_risk, 0.0385405630472623)
+    assert_almost_equal(_r(monthly_returns, None, 0, MONTHLY).downside_risk, 0.03807886552931954)
+    assert_almost_equal(_r(monthly_returns, None, 0.036, MONTHLY).downside_risk, 0.03947625868797599)
 
 
 def test_sortino():
