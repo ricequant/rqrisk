@@ -132,16 +132,40 @@ def test_annual_volatity():
         0.18663690238892558)
 
 
+def test_volatility():
+    def _assert(returns, period, desired_v, desired_annual_v):
+        r = _r(returns, None, 0, period)
+        assert_almost_equal(r.volatility, desired_v)
+        assert_almost_equal(r.annual_volatility, desired_annual_v),
+
+    _assert(one_return, DAILY, 0, 0)
+    _assert(positive_returns, DAILY, 0.0033333333333333335, 0.052915026221291815)
+    _assert(negative_returns, DAILY, 0.03179797338056485, 0.5047771785649584)
+    _assert(volatile_returns, DAILY, 0.04433145359423463, 0.7037400088100719)
+
+
+def test_excess_volatility():
+    def _assert(returns, benchmark, period, desired_excess_v, desired_excess_annual_v):
+        r = _r(returns, benchmark, 0, period)
+        assert_almost_equal(r.excess_volatility, desired_excess_v)
+        assert_almost_equal(r.excess_annual_volatility, desired_excess_annual_v)
+
+    _assert(one_return, one_benchmark, DAILY, 0, 0)
+    _assert(positive_returns, zero_benchmark, DAILY, 0.0033333333333333335, 0.052915026221291815)
+    _assert(negative_returns, zero_benchmark, DAILY, 0.03179797338056485, 0.5047771785649584)
+    _assert(volatile_returns, volatile_benchmark, DAILY, 0.07983489907998326, 1.2673397334574499)
+
+
 def test_sharpe():
-    assert_almost_equal(
-        rqrisk.Risk(one_return, one_benchmark, 0).sharpe,
-        np.nan)
-    assert_almost_equal(
-        rqrisk.Risk(positive_returns, zero_benchmark, 0).sharpe,
-        52.915026221291804)
-    assert_almost_equal(
-        rqrisk.Risk(negative_returns, zero_benchmark, 0).sharpe,
-        -24.406808633910085)
+    def _assert(returns, risk_free_rate, period, desired_sharpe):
+        assert_almost_equal(_r(returns, None, risk_free_rate, period).sharpe, desired_sharpe)
+
+    _assert(one_return, 0, DAILY,  np.nan)
+    _assert(positive_returns, 0, DAILY, 52.915026221291804)
+    _assert(negative_returns, 0, DAILY, -24.406808633910085)
+    _assert(volatile_returns, 0.0252, DAILY, -0.2347457838574942)
+    _assert(weekly_returns, 0.052, WEEKLY, 0.6097279790199784)
+    _assert(monthly_returns, 0.036, MONTHLY, 0.16431191406489135)
 
 
 def test_downside_risk():
