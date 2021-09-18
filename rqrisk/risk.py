@@ -45,6 +45,25 @@ def _annual_factor(period):
             period, ", ".join(ANNUALIZATION_FACTORS.keys())))
 
 
+class cached_property:  # noqa
+    def __init__(self, getter):
+        self._getter = getter
+        self._name = getter.__name__
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self._getter
+        value = self._getter(instance)
+        setattr(instance, self._name, value)
+        return value
+
+
+def _safe_div(dividend, divisor):
+    if divisor == 0:
+        return np.nan
+    return dividend / divisor
+
+
 class Risk(object):
     def __init__(self, daily_returns, benchmark_daily_returns, risk_free_rate, period=DAILY):
         assert(len(daily_returns) == len(benchmark_daily_returns))
@@ -55,317 +74,161 @@ class Risk(object):
         self._risk_free_rate = risk_free_rate
         self._annual_factor = _annual_factor(period)
         self._daily_risk_free_rate = self._risk_free_rate / self._annual_factor
-        self._return = np.expm1(np.log1p(daily_returns).sum())
-        self._benchmark_return = np.expm1(np.log1p(self._benchmark).sum())
-        if self._period_count == 0:
-            self._win_rate = self._annual_return = self._benchmark_annual_return = np.nan
-        else:
-            self._win_rate = len(daily_returns[daily_returns > benchmark_daily_returns]) / self._period_count
-            self._annual_return = (1 + self._return) ** (self._annual_factor / self._period_count) - 1
-            self._benchmark_annual_return = (1 + self._benchmark_return) ** \
-                                            (self._annual_factor / self._period_count) - 1
-        self._alpha = None
-        self._beta = None
         self._avg_excess_return = np.mean(daily_returns) - self._daily_risk_free_rate
-        self._sharpe = None
-        self._max_drawdown = None
-        self._volatility = None
-        self._annual_volatility = None
-        self._benchmark_volatility = None
-        self._benchmark_annual_volatility = None
-        self._information_ratio = None
-        self._sortino = None
-        self._tracking_error = None
-        self._annual_tracking_error = None
-        self._downside_risk = None
-        self._annual_downside_risk = None
-        self._calmar = None
-
         self._excess_portfolio = daily_returns - benchmark_daily_returns
-        self._excess_return_rate = None
-        self._excess_annual_return = None
-        self._excess_volatility = None
-        self._excess_annual_volatility = None
-        self._excess_max_drawdown = None
-        self._var = None
 
-    @property
+    @cached_property
     def return_rate(self):
-        return self._return
+        return np.expm1(np.log1p(self._portfolio).sum())
 
-    @property
+    @cached_property
     def annual_return(self):
-        return self._annual_return
+        if self._period_count == 0:
+            return np.nan
+        else:
+            return (1 + self.return_rate) ** (self._annual_factor / self._period_count) - 1
 
-    @property
+    @cached_property
     def benchmark_return(self):
-        return self._benchmark_return
+        return np.expm1(np.log1p(self._benchmark).sum())
 
-    @property
+    @cached_property
     def benchmark_annual_return(self):
-        return self._benchmark_annual_return
+        if self._period_count == 0:
+            return np.nan
+        else:
+            return (1 + self.benchmark_return) ** (self._annual_factor / self._period_count) - 1
 
-    @property
+    @cached_property
     def alpha(self):
-        if self._alpha is not None:
-            return self._alpha
-
         if len(self._portfolio) < 2:
-            self._alpha = np.nan
-            self._beta = np.nan
             return np.nan
+        return np.mean(self._portfolio - self._daily_risk_free_rate - self.beta * (
+                self._benchmark - self._daily_risk_free_rate
+        )) * self._annual_factor
 
-        self._alpha = np.mean(self._portfolio - self._daily_risk_free_rate - self.beta *
-                              (self._benchmark - self._daily_risk_free_rate)) * self._annual_factor
-        return self._alpha
-
-    @property
+    @cached_property
     def beta(self):
-        if self._beta is not None:
-            return self._beta
-
         if len(self._portfolio) < 2:
-            self._beta = np.nan
-            return self._beta
-
-        cov = np.cov(np.vstack([
-            self._portfolio,
-            self._benchmark
-        ]), ddof=1)
-
-        if cov[1][1] == 0.0:
             return np.nan
+        cov = np.cov(np.vstack([self._portfolio, self._benchmark]), ddof=1)
+        return _safe_div(cov[0][1], cov[1][1])
 
-        self._beta = cov[0][1] / cov[1][1]
-        return self._beta
-
-    def _calc_volatility(self):
-        if len(self._portfolio) < 2:
-            self._volatility = 0.
-            self._annual_volatility = 0.
-        else:
-            # std = self._portfolio.std(ddof=1)
-            self._volatility = self._portfolio.std(ddof=1)
-            self._annual_volatility = self._volatility * (self._annual_factor ** 0.5)
-
-    @property
+    @cached_property
     def volatility(self):
-        if self._volatility is not None:
-            return self._volatility
-
-        self._calc_volatility()
-        return self._volatility
-
-    @property
-    def annual_volatility(self):
-        if self._annual_volatility is not None:
-            return self._annual_volatility
-
-        self._calc_volatility()
-        return self._annual_volatility
-
-    def _calc_benchmark_volatility(self):
-        if len(self._benchmark) < 2:
-            self._benchmark_volatility = 0.
-            self._benchmark_annual_volatility = 0.
+        if len(self._portfolio) < 2:
+            return 0.
         else:
-            # std = self._benchmark.std(ddof=1)
-            self._benchmark_volatility = self._benchmark.std(ddof=1)
-            self._benchmark_annual_volatility = self._benchmark_volatility * (self._annual_factor ** 0.5)
+            return self._portfolio.std(ddof=1)
 
-    @property
+    @cached_property
+    def annual_volatility(self):
+        return self.volatility * (self._annual_factor ** 0.5)
+
+    @cached_property
     def benchmark_volatility(self):
-        if self._benchmark_volatility is not None:
-            return self._benchmark_volatility
+        if len(self._benchmark) < 2:
+            return 0.
+        else:
+            return self._benchmark.std(ddof=1)
 
-        self._calc_benchmark_volatility()
-        return self._benchmark_volatility
-
-    @property
+    @cached_property
     def benchmark_annual_volatility(self):
-        if self._benchmark_annual_volatility is not None:
-            return self._benchmark_annual_volatility
+        return self.benchmark_volatility * (self._annual_factor ** 0.5)
 
-        self._calc_benchmark_volatility()
-        return self._benchmark_annual_volatility
-
-    @property
-    def max_drawdown(self):
-        if self._max_drawdown is not None:
-            return self._max_drawdown
-
-        portfolio = [0] + list(self._portfolio)
-        df_cum = np.exp(np.log1p(portfolio).cumsum())
+    @staticmethod
+    def _calc_max_drawdown(returns):
+        returns = [0] + list(returns)
+        df_cum = np.exp(np.log1p(returns).cumsum())
         max_return = np.maximum.accumulate(df_cum)
-        self._max_drawdown = abs(((df_cum - max_return) / max_return).min())
-        return self._max_drawdown
+        return abs(((df_cum - max_return) / max_return).min())
 
-    def _calc_tracking_error(self):
-        if len(self._portfolio) < 2:
-            self._tracking_error = 0.
-            self._annual_tracking_error = 0.
-            return 0
+    @cached_property
+    def max_drawdown(self):
+        return self._calc_max_drawdown(self._portfolio)
 
-        self._avg_tracking_return = np.mean(self._excess_portfolio)
-        self._tracking_error = self._excess_portfolio.std(ddof=1)
-        self._annual_tracking_error = self._tracking_error * (self._annual_factor ** 0.5)
-
-    @property
+    @cached_property
     def tracking_error(self):
-        if self._tracking_error is not None:
-            return self._tracking_error
-
-        self._calc_tracking_error()
-        return self._tracking_error
-
-    @property
-    def annual_tracking_error(self):
-        if self._annual_tracking_error is not None:
-            return self._annual_tracking_error
-
-        self._calc_tracking_error()
-        return self._annual_tracking_error
-
-    @property
-    def information_ratio(self):
-        if self._information_ratio is not None:
-            return self._information_ratio
-
         if len(self._portfolio) < 2:
-            self._information_ratio = np.nan
+            return 0.
+        return self._excess_portfolio.std(ddof=1)
+
+    @cached_property
+    def annual_tracking_error(self):
+        return self.tracking_error * (self._annual_factor ** 0.5)
+
+    @cached_property
+    def information_ratio(self):
+        if len(self._portfolio) < 2:
             return np.nan
+        return _safe_div(np.sqrt(self._annual_factor) * np.mean(self._excess_portfolio), self.tracking_error)
 
-        if self.tracking_error == 0:
-            self._information_ratio = np.nan
-            return np.nan
-
-        self._information_ratio = np.sqrt(self._annual_factor) * self._avg_tracking_return / self.tracking_error
-        return self._information_ratio
-
-    @property
+    @cached_property
     def sharpe(self):
-        if self._sharpe is not None:
-            return self._sharpe
-
-        if self.volatility == 0:
-            self._sharpe = np.nan
+        if len(self._portfolio) < 2:
             return np.nan
-
         std_excess_return = np.sqrt((1 / (len(self._portfolio) - 1)) * np.sum(
             (self._portfolio - self._daily_risk_free_rate - self._avg_excess_return) ** 2
         ))
-        self._sharpe = np.sqrt(self._annual_factor) * self._avg_excess_return / std_excess_return
-        return self._sharpe
+        return _safe_div(np.sqrt(self._annual_factor) * self._avg_excess_return, std_excess_return)
 
-    @property
+    @cached_property
     def excess_sharpe(self):
         return self.information_ratio
 
-    def _calc_downside_risk(self):
+    @cached_property
+    def downside_risk(self):
         if len(self._portfolio) < 2:
-            self._annual_downside_risk = 0.
-            self._downside_risk = 0.
             return 0
         diff = self._portfolio - self._daily_risk_free_rate
         diff[diff > 0] = 0.
-        sum_mean_squares = np.sum(np.square(diff))
-        self._downside_risk = (sum_mean_squares / (len(diff) - 1)) ** 0.5
-        self._annual_downside_risk = self._downside_risk * (self._annual_factor ** 0.5)
+        return (np.sum(np.square(diff)) / (len(diff) - 1)) ** 0.5
 
-    @property
-    def downside_risk(self):
-        if self._downside_risk is not None:
-            return self._downside_risk
-
-        self._calc_downside_risk()
-        return self._downside_risk
-
-    @property
+    @cached_property
     def annual_downside_risk(self):
-        if self._annual_downside_risk is not None:
-            return self._annual_downside_risk
+        return self.downside_risk * (self._annual_factor ** 0.5)
 
-        self._calc_downside_risk()
-        return self._annual_downside_risk
-
-    @property
+    @cached_property
     def sortino(self):
-        if self._sortino is not None:
-            return self._sortino
+        return _safe_div(self._annual_factor * self._avg_excess_return, self.annual_downside_risk)
 
-        if self.downside_risk == 0:
-            self._sortino = np.nan
-            return np.nan
-
-        self._sortino = self._annual_factor * self._avg_excess_return / self.annual_downside_risk
-        return self._sortino
-
-    @property
+    @cached_property
     def calmar(self):
-        if self._calmar is not None:
-            return self._calmar
-
         if np.isclose(self.max_drawdown, 0):
-            self._calmar = np.inf * np.sign(self._annual_return)
+            return np.inf * np.sign(self.annual_return)
         else:
-            self._calmar = self._annual_return / self.max_drawdown
+            return self.annual_return / self.max_drawdown
 
-        return self._calmar
-
-    @property
+    @cached_property
     def excess_return_rate(self):
-        if self._excess_return_rate is None:
-            self._excess_return_rate = np.expm1(np.log1p(self._excess_portfolio).sum())
-        return self._excess_return_rate
+        return np.expm1(np.log1p(self._excess_portfolio).sum())
 
-    @property
+    @cached_property
     def excess_annual_return(self):
-        if self._excess_annual_return is None:
-            self._excess_annual_return = (1 + self._excess_return_rate) ** (self._annual_factor / self._period_count) - 1
-        return self._excess_annual_return
+        return (1 + self.excess_return_rate) ** (self._annual_factor / self._period_count) - 1
 
-    def _calc_excess_volatility(self):
-        if len(self._excess_portfolio) > 1:
-            self._excess_volatility = self._excess_portfolio.std(ddof=1)
-            self._excess_annual_volatility = self._excess_volatility * (self._annual_factor ** 0.5)
-        else:
-            self._excess_volatility = 0
-            self._excess_annual_volatility = 0.
-
-    @property
+    @cached_property
     def excess_volatility(self):
-        if self._excess_volatility is None:
-            self._calc_excess_volatility()
-        return self._excess_volatility
+        if len(self._portfolio) < 2:
+            return 0.
+        return self._excess_portfolio.std(ddof=1)
 
-    @property
+    @cached_property
     def excess_annual_volatility(self):
-        if self._excess_annual_volatility is None:
-            self._calc_excess_volatility()
-        return self._excess_annual_volatility
+        return self.excess_volatility * (self._annual_factor ** 0.5)
 
-    @property
+    @cached_property
     def excess_max_drawdown(self):
-        if self._excess_max_drawdown is not None:
-            return self._excess_max_drawdown
-
         if len(self._excess_portfolio) < 1:
-            self._excess_max_drawdown = np.nan
             return np.nan
-
         df_cum = np.exp(np.log1p(self._excess_portfolio).cumsum())
         max_return = np.maximum.accumulate(df_cum)
-        self._excess_max_drawdown = -((df_cum - max_return) / max_return).min()
-        return self._excess_max_drawdown
+        return -((df_cum - max_return) / max_return).min()
 
-    @property
+    @cached_property
     def var(self):
         """ default: 95% VaR """
-        if self._var is not None:
-            return self._var
-
-        self._var = self.param_var(0.05)
-        return self._var
+        return self.param_var(0.05)
 
     def param_var(self, alpha):
         import scipy.stats as stats
@@ -374,9 +237,12 @@ class Risk(object):
         std = np.std(log_return)
         return np.expm1(-stats.norm(mean, std).ppf(alpha))
 
-    @property
+    @cached_property
     def win_rate(self):
-        return self._win_rate
+        if self._period_count == 0:
+            return np.nan
+        else:
+            return len(self._portfolio[self._portfolio > self._benchmark]) / self._period_count
 
     def all(self):
         result = {
@@ -403,8 +269,4 @@ class Risk(object):
             'excess_max_drawdown': self.excess_max_drawdown,
             'win_rate': self.win_rate,
         }
-
-        # now all are done, _portfolio, _benchmark not needed now
-        self._portfolio = None
-        self._benchmark = None
         return result
