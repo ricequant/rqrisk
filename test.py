@@ -71,7 +71,7 @@ volatile_benchmark = pd.Series(
 
 def _r(returns, benchmark_returns, risk_free_rate, period=DAILY):
     if benchmark_returns is None:
-        benchmark_returns = pd.Series([np.nan] * len(returns), index=returns.index)
+        benchmark_returns = pd.Series([np.nan] * len(returns), index=returns.index, dtype=returns.dtype)
     return rqrisk.Risk(returns, benchmark_returns, risk_free_rate, period)
 
 
@@ -88,12 +88,12 @@ def test_return():
 
 
 def test_annual_return():
-    assert_almost_equal(
-        rqrisk.Risk(weekly_returns, simple_weekly_benchamrk, 0, rqrisk.WEEKLY).annual_return,
-        0.24690830513998208)
-    assert_almost_equal(
-        rqrisk.Risk(monthly_returns, simple_monthly_benchamrk, 0, rqrisk.MONTHLY).annual_return,
-        0.052242061386048144)
+    def _assert(returns, period, desired_annual_return):
+        assert_almost_equal(_r(returns, None, 0, period).annual_return, desired_annual_return)
+
+    _assert(weekly_returns, WEEKLY, 0.24690830513998208)
+    _assert(monthly_returns, MONTHLY, 0.052242061386048144)
+    _assert(pd.Series([], dtype=float), DAILY, np.nan)
 
 
 def test_beta_alpha():
