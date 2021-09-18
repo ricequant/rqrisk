@@ -102,6 +102,7 @@ def test_beta_alpha():
         assert_almost_equal(r.beta, desired_beta)
         assert_almost_equal(r.alpha, desired_alpha)
 
+    _assert(one_return, one_benchmark, 0, DAILY, np.nan, np.nan)
     _assert(positive_returns, volatile_benchmark, 0.0252, DAILY, 0.004444444444444445, 2.7599786666666666)
     _assert(volatile_returns, volatile_benchmark, 0.0252, DAILY, -0.6755555555555558, 2.087642666666667)
     _assert(volatile_returns, volatile_benchmark, 0.052, WEEKLY, -0.6755555555555558, 0.35236740740740746)
@@ -206,3 +207,13 @@ def test_tracking_error_information_ratio():
     _assert(positive_returns, simple_benchmark, DAILY, 0.003333333333333333, 0.05291502622129181, 5.291502622129182)
     _assert(negative_returns, simple_benchmark, DAILY, 0.03179797338056485, 0.5047771785649584, -29.399110399937154)
     _assert(weekly_returns, simple_benchmark, WEEKLY, 0.05387743291748205, 0.38851569394870583, -0.5948565648975399)
+
+
+def test_max_drawdown():
+    def _assert(returns, benchmark, desired_max_dd, desired_excess_max_dd):
+        r = _r(returns, benchmark, 0, DAILY)
+        assert_almost_equal(r.max_drawdown, desired_max_dd)
+        assert_almost_equal(r.excess_max_drawdown, desired_excess_max_dd)
+
+    _assert(volatile_returns, zero_benchmark, 0.10899999999999994, 0.10899999999999994)
+    _assert(volatile_returns, volatile_benchmark, 0.10899999999999994, 0.20000000000000007)
