@@ -80,14 +80,12 @@ class Risk(object):
         self._downside_risk = None
         self._annual_downside_risk = None
         self._calmar = None
-        self._avg_excess_benchmark_return = None
 
         self._excess_portfolio = daily_returns - benchmark_daily_returns
         self._excess_return_rate = None
         self._excess_annual_return = None
         self._excess_volatility = None
         self._excess_annual_volatility = None
-        self._excess_sharpe = None
         self._excess_max_drawdown = None
         self._var = None
 
@@ -140,13 +138,6 @@ class Risk(object):
 
         self._beta = cov[0][1] / cov[1][1]
         return self._beta
-
-    @property
-    def avg_excess_benchmark_return(self):
-        if self._avg_excess_benchmark_return is not None:
-            return self._avg_excess_benchmark_return
-        self._avg_excess_benchmark_return = np.mean(self._excess_portfolio)
-        return self._avg_excess_benchmark_return
 
     def _calc_volatility(self):
         if len(self._portfolio) < 2:
@@ -268,18 +259,7 @@ class Risk(object):
 
     @property
     def excess_sharpe(self):
-        if self._excess_sharpe is not None:
-            return self._excess_sharpe
-
-        if self.volatility == 0:
-            self._excess_sharpe = np.nan
-            return np.nan
-
-        std_excess_return = np.sqrt((1 / (len(self._portfolio) - 1)) * np.sum(
-            (self._portfolio - self._daily_risk_free_rate - self.avg_excess_benchmark_return) ** 2
-        ))
-        self._excess_sharpe = np.sqrt(self._annual_factor) * self.avg_excess_benchmark_return / std_excess_return
-        return self._excess_sharpe
+        return self.information_ratio
 
     def _calc_downside_risk(self):
         if len(self._portfolio) < 2:

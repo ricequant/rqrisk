@@ -200,6 +200,7 @@ def test_tracking_error_information_ratio():
         assert_almost_equal(r.tracking_error, desired_te)
         assert_almost_equal(r.annual_tracking_error, desired_annual_te)
         assert_almost_equal(r.information_ratio, desired_ir)
+        assert_almost_equal(r.excess_sharpe, desired_ir)
 
     _assert(positive_returns, zero_benchmark, DAILY, 0.0033333333333333335, 0.052915026221291815, 52.915026221291804)
     _assert(positive_returns, simple_benchmark, DAILY, 0.003333333333333333, 0.05291502622129181, 5.291502622129182)
