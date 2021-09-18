@@ -19,63 +19,7 @@ from __future__ import division
 
 import numpy as np
 
-APPROX_BDAYS_PER_MONTH = 21
-APPROX_BDAYS_PER_YEAR = 252
-
-MONTHS_PER_YEAR = 12
-WEEKS_PER_YEAR = 52
-
-DAILY = 'daily'
-WEEKLY = 'weekly'
-MONTHLY = 'monthly'
-YEARLY = 'yearly'
-
-ANNUALIZATION_FACTORS = {
-    DAILY: APPROX_BDAYS_PER_YEAR,
-    WEEKLY: WEEKS_PER_YEAR,
-    MONTHLY: MONTHS_PER_YEAR
-}
-
-
-def _annual_factor(period):
-    try:
-        return ANNUALIZATION_FACTORS[period]
-    except KeyError:
-        raise ValueError("period cannot be {}, possible values: {}".format(
-            period, ", ".join(ANNUALIZATION_FACTORS.keys())))
-
-
-class IndicatorProperty:
-    pass
-
-
-def indicator_property(min_period_count=None, value_when_pc_not_satisfied=np.nan):
-    """
-    封装绑定方法为缓存的 property 的装饰器
-    :param min_period_count: 最小的 portfolio 长度，不满足时则给出 value_when_pc_not_satisfied，None 表示不做此项检查
-    :param value_when_pc_not_satisfied: portfolio 长度小于 min_period_count 时给出的值，默认为 np.nan
-    """
-    class cached_property(IndicatorProperty):  # noqa
-        def __init__(self, getter):
-            if min_period_count is not None:
-                self._getter = lambda i: value_when_pc_not_satisfied if i.period_count < min_period_count else getter(i)
-            else:
-                self._getter = getter
-            self._name = getter.__name__
-
-        def __get__(self, instance, owner):
-            if instance is None:
-                return self._getter
-            value = self._getter(instance)
-            setattr(instance, self._name, value)
-            return value
-    return cached_property
-
-
-def _safe_div(dividend, divisor):
-    if divisor == 0:
-        return np.nan
-    return dividend / divisor
+from .utils import indicator_property, IndicatorProperty, annual_factor, safe_div, DAILY
 
 
 class Risk(object):
@@ -85,7 +29,7 @@ class Risk(object):
 
         self._portfolio = daily_returns
         self._benchmark = benchmark_daily_returns
-        self._annual_factor = _annual_factor(period)
+        self._annual_factor = annual_factor(period)
         self._risk_free_rate_per_period = risk_free_rate / self._annual_factor
         self._avg_excess_return = np.mean(daily_returns) - self._risk_free_rate_per_period
         self._excess_portfolio = daily_returns - benchmark_daily_returns
@@ -115,7 +59,7 @@ class Risk(object):
     @indicator_property(min_period_count=2)
     def beta(self):
         cov = np.cov(np.vstack([self._portfolio, self._benchmark]), ddof=1)
-        return _safe_div(cov[0][1], cov[1][1])
+        return safe_div(cov[0][1], cov[1][1])
 
     @indicator_property(min_period_count=2, value_when_pc_not_satisfied=0.)
     def volatility(self):
@@ -154,14 +98,14 @@ class Risk(object):
 
     @indicator_property(min_period_count=2)
     def information_ratio(self):
-        return _safe_div(np.sqrt(self._annual_factor) * np.mean(self._excess_portfolio), self.tracking_error)
+        return safe_div(np.sqrt(self._annual_factor) * np.mean(self._excess_portfolio), self.tracking_error)
 
     @indicator_property(min_period_count=2)
     def sharpe(self):
         std_excess_return = np.sqrt((1 / (len(self._portfolio) - 1)) * np.sum(
             (self._portfolio - self._risk_free_rate_per_period - self._avg_excess_return) ** 2
         ))
-        return _safe_div(np.sqrt(self._annual_factor) * self._avg_excess_return, std_excess_return)
+        return safe_div(np.sqrt(self._annual_factor) * self._avg_excess_return, std_excess_return)
 
     @indicator_property()
     def excess_sharpe(self):
@@ -179,7 +123,7 @@ class Risk(object):
 
     @indicator_property()
     def sortino(self):
-        return _safe_div(self._annual_factor * self._avg_excess_return, self.annual_downside_risk)
+        return safe_div(self._annual_factor * self._avg_excess_return, self.annual_downside_risk)
 
     @indicator_property()
     def calmar(self):
