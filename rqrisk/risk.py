@@ -90,10 +90,14 @@ class Risk(object):
 
     @indicator_property(min_period_count=2, value_when_pc_not_satisfied=0.)
     def tracking_error(self):
+        if np.all(np.isnan(self._benchmark)):
+            return np.nan
         return self._excess_portfolio.std(ddof=1)
 
     @indicator_property()
     def annual_tracking_error(self):
+        if np.all(np.isnan(self._benchmark)):
+            return np.nan
         return self.tracking_error * (self._annual_factor ** 0.5)
 
     @indicator_property(min_period_count=2)
