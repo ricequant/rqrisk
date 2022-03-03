@@ -24,7 +24,7 @@ from .utils import indicator_property, IndicatorProperty, annual_factor, safe_di
 
 class Risk(object):
     def __init__(self, daily_returns, benchmark_daily_returns, risk_free_rate, period=DAILY):
-        assert(len(daily_returns) == len(benchmark_daily_returns))
+        assert (len(daily_returns) == len(benchmark_daily_returns))
         self.period_count = len(daily_returns)
 
         self._portfolio = daily_returns
