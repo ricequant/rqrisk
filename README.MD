@@ -54,7 +54,7 @@ Out[4]:
  'max_drawdown': 0.06502900516774743,
  'tracking_error': 0.009180922248518028,
  'annual_tracking_error': 0.14574262245479186,
- 'information_ratio': -6.328416385440682,
+ 'information_ratio': -0.4113963917368945,
  'sharpe': -5.55274570048971,
  'excess_sharpe': -6.328416385440682,
  'downside_risk': 0.011371747671783752,

@@ -32,7 +32,7 @@ class Risk(object):
         self._annual_factor = annual_factor(period)
         self._risk_free_rate_per_period = risk_free_rate / self._annual_factor
         self._avg_excess_return = np.mean(daily_returns) - self._risk_free_rate_per_period
-        self._excess_portfolio = daily_returns - benchmark_daily_returns
+        self._active_returns = daily_returns - benchmark_daily_returns
 
     @indicator_property()
     def return_rate(self):
@@ -52,6 +52,7 @@ class Risk(object):
 
     @indicator_property(min_period_count=2)
     def alpha(self):
+        # Jensen's alpha：https://en.wikipedia.org/wiki/Jensen%27s_alpha
         return np.mean(self._portfolio - self._risk_free_rate_per_period - self.beta * (
                 self._benchmark - self._risk_free_rate_per_period
         )) * self._annual_factor
@@ -92,7 +93,7 @@ class Risk(object):
     def tracking_error(self):
         if np.all(np.isnan(self._benchmark)):
             return np.nan
-        return self._excess_portfolio.std(ddof=1)
+        return self._active_returns.std(ddof=1)
 
     @indicator_property()
     def annual_tracking_error(self):
@@ -102,7 +103,9 @@ class Risk(object):
 
     @indicator_property(min_period_count=2)
     def information_ratio(self):
-        return safe_div(np.sqrt(self._annual_factor) * np.mean(self._excess_portfolio), self.tracking_error)
+        # residual_return / residual_risk
+        residual_returns = self._portfolio - self.beta * self._benchmark
+        return np.mean(residual_returns) / residual_returns.std(ddof=1)
 
     @indicator_property(min_period_count=2)
     def sharpe(self):
@@ -113,7 +116,8 @@ class Risk(object):
 
     @indicator_property()
     def excess_sharpe(self):
-        return self.information_ratio
+        # sharpe ratio of active returns
+        return safe_div(np.sqrt(self._annual_factor) * np.mean(self._active_returns), self.tracking_error)
 
     @indicator_property(min_period_count=2, value_when_pc_not_satisfied=0.)
     def downside_risk(self):
@@ -138,15 +142,18 @@ class Risk(object):
 
     @indicator_property()
     def excess_return_rate(self):
-        return np.expm1(np.log1p(self._excess_portfolio).sum())
+        # activate return rate
+        return np.expm1(np.log1p(self._active_returns).sum())
 
     @indicator_property()
     def excess_annual_return(self):
+        # active annual return
         return (1 + self.excess_return_rate) ** (self._annual_factor / self.period_count) - 1
 
     @indicator_property(min_period_count=2, value_when_pc_not_satisfied=0.)
     def excess_volatility(self):
-        return self._excess_portfolio.std(ddof=1)
+        # volatility of active returns
+        return self._active_returns.std(ddof=1)
 
     @indicator_property()
     def excess_annual_volatility(self):
@@ -154,7 +161,7 @@ class Risk(object):
 
     @indicator_property(min_period_count=1)
     def excess_max_drawdown(self):
-        return self._calc_max_drawdown(self._excess_portfolio)
+        return self._calc_max_drawdown(self._active_returns)
 
     @indicator_property()
     def var(self):
