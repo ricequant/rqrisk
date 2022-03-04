@@ -68,6 +68,11 @@ volatile_benchmark = pd.Series(
     index=pd.date_range('2000-1-30', periods=9, freq='D')
 )
 
+volatile_weekly_benchmark = pd.Series(
+    np.array([1, 2, -5, 3, 10, -3, -1, 4, 1]) / 100,
+    index=pd.date_range('2000-1-30', periods=9, freq='W')
+)
+
 
 def _r(returns, benchmark_returns, risk_free_rate, period=DAILY):
     if benchmark_returns is None:
@@ -196,17 +201,26 @@ def test_sortino():
 
 
 def test_tracking_error_information_ratio():
-    def _assert(returns, benchmark, period, desired_te, desired_annual_te, desired_ir):
+    def _assert(returns, benchmark, period, desired_te, desired_annual_te, desired_excess_sharpe):
         r = _r(returns, pd.Series(benchmark.values, index=returns.index), 0, period)
         assert_almost_equal(r.tracking_error, desired_te)
         assert_almost_equal(r.annual_tracking_error, desired_annual_te)
-        assert_almost_equal(r.information_ratio, desired_ir)
-        assert_almost_equal(r.excess_sharpe, desired_ir)
+        assert_almost_equal(r.excess_sharpe, desired_excess_sharpe)
 
     _assert(positive_returns, zero_benchmark, DAILY, 0.0033333333333333335, 0.052915026221291815, 52.915026221291804)
     _assert(positive_returns, simple_benchmark, DAILY, 0.003333333333333333, 0.05291502622129181, 5.291502622129182)
     _assert(negative_returns, simple_benchmark, DAILY, 0.03179797338056485, 0.5047771785649584, -29.399110399937154)
     _assert(weekly_returns, simple_benchmark, WEEKLY, 0.05387743291748205, 0.38851569394870583, -0.5948565648975399)
+
+
+def test_information_ratio():
+    def _assert(returns, benchmark, period, desired_ir):
+        r = _r(returns, pd.Series(benchmark.values, index=returns.index), 0, period)
+        assert_almost_equal(r.information_ratio, desired_ir)
+    _assert(positive_returns, zero_benchmark, DAILY, np.nan)
+    _assert(positive_returns, volatile_benchmark, DAILY, 3.3210953347830436)
+    _assert(volatile_returns, volatile_benchmark, DAILY, 0.2537311136440097)
+    _assert(weekly_returns, volatile_weekly_benchmark, WEEKLY, 0.22143649867076098)
 
 
 def test_max_drawdown():
