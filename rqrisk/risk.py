@@ -18,6 +18,7 @@
 from __future__ import division
 
 import numpy as np
+from statsmodels.formula.api import ols
 
 from .utils import indicator_property, IndicatorProperty, annual_factor, safe_div, DAILY
 
@@ -56,6 +57,16 @@ class Risk(object):
         return np.mean(self._portfolio - self._risk_free_rate_per_period - self.beta * (
                 self._benchmark - self._risk_free_rate_per_period
         )) * self._annual_factor
+
+    @indicator_property(min_period_count=2)
+    def alpha_t_value(self):
+        result = ols("p ~ b", data={"p": self._portfolio, "b": self._benchmark}).fit()
+        return result.tvalues["Intercept"]
+
+    @indicator_property(min_period_count=2)
+    def alpha_p_value(self):
+        result = ols("p ~ b", data={"p": self._portfolio, "b": self._benchmark}).fit()
+        return result.pvalues["Intercept"]
 
     @indicator_property(min_period_count=2)
     def beta(self):
