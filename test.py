@@ -108,10 +108,10 @@ def test_beta_alpha():
         assert_almost_equal(r.alpha, desired_alpha)
 
     _assert(one_return, one_benchmark, 0, DAILY, np.nan, np.nan)
-    _assert(positive_returns, volatile_benchmark, 0.0252, DAILY, 0.004444444444444445, 2.7599786666666666)
-    _assert(volatile_returns, volatile_benchmark, 0.0252, DAILY, -0.6755555555555558, 2.087642666666667)
-    _assert(volatile_returns, volatile_benchmark, 0.052, WEEKLY, -0.6755555555555558, 0.35236740740740746)
-    _assert(volatile_returns, volatile_benchmark, 0.024, MONTHLY, -0.6755555555555558, 0.06120888888888891)
+    _assert(positive_returns, volatile_benchmark, 0.0252, DAILY, 0.004444444444444445, 15.050183341344455)
+    _assert(volatile_returns, volatile_benchmark, 0.0252, DAILY, -0.6755555555555558, 14.515193843282699)
+    _assert(volatile_returns, volatile_benchmark, 0.052, WEEKLY, -0.6755555555555558, 0.4543018988394533)
+    _assert(volatile_returns, volatile_benchmark, 0.024, MONTHLY, -0.6755555555555558, 0.05117674068461497)
 
 
 def test_calmar():
@@ -169,9 +169,9 @@ def test_sharpe():
     _assert(one_return, 0, DAILY,  np.nan)
     _assert(positive_returns, 0, DAILY, 52.915026221291804)
     _assert(negative_returns, 0, DAILY, -24.406808633910085)
-    _assert(volatile_returns, 0.0252, DAILY, -0.2347457838574942)
-    _assert(weekly_returns, 0.052, WEEKLY, 0.6097279790199784)
-    _assert(monthly_returns, 0.036, MONTHLY, 0.16431191406489135)
+    _assert(volatile_returns, 0.0252, DAILY, -0.2343037804431006)
+    _assert(weekly_returns, 0.052, WEEKLY, 0.613028149736571)
+    _assert(monthly_returns, 0.036, MONTHLY, 0.16742323233212023)
 
 
 def test_downside_risk():
@@ -182,9 +182,9 @@ def test_downside_risk():
 
     _assert(one_return, 0, DAILY, 0., 0.)
     _assert(weekly_returns, 0, WEEKLY, 0.03807886552931954, 0.2745906043549196)
-    _assert(weekly_returns, 0.052, WEEKLY, 0.0385405630472623, 0.2779199525043137)
+    _assert(weekly_returns, 0.052, WEEKLY, 0.03852912842784676, 0.27783749629107746)
     _assert(monthly_returns, 0, MONTHLY, 0.03807886552931954, 0.1319090595827292)
-    _assert(monthly_returns, 0.036, MONTHLY, 0.03947625868797599, 0.13674977148061343)
+    _assert(monthly_returns, 0.036, MONTHLY, 0.03945343241718858, 0.1366706989591112)
 
 
 def test_sortino():
@@ -193,11 +193,11 @@ def test_sortino():
 
     _assert(one_return, 0, DAILY, np.nan)
     _assert(positive_returns, 0, DAILY, np.nan)
-    _assert(negative_returns, 0.0252, DAILY, -12.765908412673111)
+    _assert(negative_returns, 0.0252, DAILY, -12.765820771130254)
     _assert(weekly_returns, 0, WEEKLY, 1.0520712810533321)
-    _assert(weekly_returns, 0.052, WEEKLY, 0.8523637355083818)
+    _assert(weekly_returns, 0.052, WEEKLY, 0.8572315118887853)
     _assert(monthly_returns, 0, MONTHLY, 0.505398695719269)
-    _assert(monthly_returns, 0.036, MONTHLY, 0.22425387870585353)
+    _assert(monthly_returns, 0.036, MONTHLY, 0.22863242603125083)
 
 
 def test_tracking_error_information_ratio():
@@ -218,9 +218,9 @@ def test_information_ratio():
         r = _r(returns, pd.Series(benchmark.values, index=returns.index), 0, period)
         assert_almost_equal(r.information_ratio, desired_ir)
     _assert(positive_returns, zero_benchmark, DAILY, np.nan)
-    _assert(positive_returns, volatile_benchmark, DAILY, 3.3210953347830436)
-    _assert(volatile_returns, volatile_benchmark, DAILY, 0.2537311136440097)
-    _assert(weekly_returns, volatile_weekly_benchmark, WEEKLY, 0.22143649867076098)
+    _assert(positive_returns, volatile_benchmark, DAILY, 52.720754017036406)
+    _assert(volatile_returns, volatile_benchmark, DAILY, 4.027856559489104)
+    _assert(weekly_returns, volatile_weekly_benchmark, WEEKLY, 1.5968013004332844)
 
 
 def test_max_drawdown():

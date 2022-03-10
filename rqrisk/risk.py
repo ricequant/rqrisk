@@ -31,7 +31,8 @@ class Risk(object):
         self._portfolio = daily_returns
         self._benchmark = benchmark_daily_returns
         self._annual_factor = annual_factor(period)
-        self._risk_free_rate_per_period = risk_free_rate / self._annual_factor
+        self._risk_free_rate = risk_free_rate
+        self._risk_free_rate_per_period = (1 + risk_free_rate) ** (1 / self._annual_factor) - 1
         self._avg_excess_return = np.mean(daily_returns) - self._risk_free_rate_per_period
         self._active_returns = daily_returns - benchmark_daily_returns
 
@@ -53,10 +54,10 @@ class Risk(object):
 
     @indicator_property(min_period_count=2)
     def alpha(self):
-        # Jensen's alpha：https://en.wikipedia.org/wiki/Jensen%27s_alpha
-        return np.mean(self._portfolio - self._risk_free_rate_per_period - self.beta * (
-                self._benchmark - self._risk_free_rate_per_period
-        )) * self._annual_factor
+        # annualized Jensen's alpha：https://en.wikipedia.org/wiki/Jensen%27s_alpha
+        return self.annual_return - self._risk_free_rate - self.beta * (
+            self.benchmark_annual_return - self._risk_free_rate
+        )
 
     @indicator_property(min_period_count=2)
     def alpha_t_value(self):
@@ -116,7 +117,7 @@ class Risk(object):
     def information_ratio(self):
         # residual_return / residual_risk
         residual_returns = self._portfolio - self.beta * self._benchmark
-        return np.mean(residual_returns) / residual_returns.std(ddof=1)
+        return np.sqrt(self._annual_factor) * np.mean(residual_returns) / residual_returns.std(ddof=1)
 
     @indicator_property(min_period_count=2)
     def sharpe(self):
