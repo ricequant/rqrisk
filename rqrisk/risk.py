@@ -17,6 +17,8 @@
 
 from __future__ import division
 
+import warnings
+
 import numpy as np
 from statsmodels.formula.api import ols
 
@@ -185,7 +187,9 @@ class Risk(object):
         log_return = np.log1p(self._portfolio)
         mean = np.mean(log_return)
         std = np.std(log_return)
-        return np.expm1(-stats.norm(mean, std).ppf(alpha))
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", "invalid value encountered in multiply")
+            return np.expm1(-stats.norm(mean, std).ppf(alpha))
 
     @indicator_property(min_period_count=1)
     def win_rate(self):
