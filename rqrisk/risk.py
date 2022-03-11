@@ -63,11 +63,15 @@ class Risk(object):
 
     @indicator_property(min_period_count=2)
     def alpha_t_value(self):
+        if all(self._benchmark):
+            return np.nan
         result = ols("p ~ b", data={"p": self._portfolio, "b": self._benchmark}).fit()
         return result.tvalues["Intercept"]
 
     @indicator_property(min_period_count=2)
     def alpha_p_value(self):
+        if all(self._benchmark):
+            return np.nan
         result = ols("p ~ b", data={"p": self._portfolio, "b": self._benchmark}).fit()
         return result.pvalues["Intercept"]
 
