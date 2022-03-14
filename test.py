@@ -181,10 +181,10 @@ def test_downside_risk():
         assert_almost_equal(r.annual_downside_risk, desired_annual_downside_risk)
 
     _assert(one_return, 0, DAILY, 0., 0.)
-    _assert(weekly_returns, 0, WEEKLY, 0.03807886552931954, 0.2745906043549196)
-    _assert(weekly_returns, 0.052, WEEKLY, 0.03852912842784676, 0.27783749629107746)
-    _assert(monthly_returns, 0, MONTHLY, 0.03807886552931954, 0.1319090595827292)
-    _assert(monthly_returns, 0.036, MONTHLY, 0.03945343241718858, 0.1366706989591112)
+    _assert(weekly_returns, 0, WEEKLY, 0.04069420743199846, 0.2934501030208764)
+    _assert(weekly_returns, 0.052, WEEKLY, 0.04069420743199846, 0.2934501030208764)
+    _assert(monthly_returns, 0, MONTHLY, 0.04069420743199846, 0.14096886969193667)
+    _assert(monthly_returns, 0.036, MONTHLY, 0.04069420743199846, 0.14096886969193667)
 
 
 def test_sortino():
@@ -192,12 +192,12 @@ def test_sortino():
         assert_almost_equal(_r(returns, None, risk_free_rate, period).sortino, desired_sortino)
 
     _assert(one_return, 0, DAILY, np.nan)
-    _assert(positive_returns, 0, DAILY, np.nan)
-    _assert(negative_returns, 0.0252, DAILY, -12.765820771130254)
-    _assert(weekly_returns, 0, WEEKLY, 1.0520712810533321)
-    _assert(weekly_returns, 0.052, WEEKLY, 0.8572315118887853)
-    _assert(monthly_returns, 0, MONTHLY, 0.505398695719269)
-    _assert(monthly_returns, 0.036, MONTHLY, 0.22863242603125083)
+    _assert(positive_returns, 0, DAILY, 158.74507866387563)
+    _assert(negative_returns, 0.0252, DAILY, -37.99176785990703)
+    _assert(weekly_returns, 0, WEEKLY, 0.9844565938637175)
+    _assert(weekly_returns, 0.052, WEEKLY, 0.8116236953171263)
+    _assert(monthly_returns, 0, MONTHLY, 0.47291765062992475)
+    _assert(monthly_returns, 0.036, MONTHLY, 0.22166137487442497)
 
 
 def test_tracking_error_information_ratio():
@@ -218,9 +218,9 @@ def test_information_ratio():
         r = _r(returns, pd.Series(benchmark.values, index=returns.index), 0, period)
         assert_almost_equal(r.information_ratio, desired_ir)
     _assert(positive_returns, zero_benchmark, DAILY, np.nan)
-    _assert(positive_returns, volatile_benchmark, DAILY, 52.720754017036406)
-    _assert(volatile_returns, volatile_benchmark, DAILY, 4.027856559489104)
-    _assert(weekly_returns, volatile_weekly_benchmark, WEEKLY, 1.5968013004332844)
+    _assert(positive_returns, volatile_benchmark, DAILY, 285.37186618887614)
+    _assert(volatile_returns, volatile_benchmark, DAILY, 27.529981978194222)
+    _assert(weekly_returns, volatile_weekly_benchmark, WEEKLY, 1.7335510771535123)
 
 
 def test_max_drawdown():

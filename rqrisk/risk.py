@@ -123,7 +123,8 @@ class Risk(object):
     def information_ratio(self):
         # residual_return / residual_risk
         residual_returns = self._portfolio - self.beta * self._benchmark
-        return np.sqrt(self._annual_factor) * np.mean(residual_returns) / residual_returns.std(ddof=1)
+        annual_residual_std = residual_returns.std(ddof=1) * np.sqrt(self._annual_factor)
+        return (self.annual_return - self.beta * self.benchmark_annual_return) / annual_residual_std
 
     @indicator_property(min_period_count=2)
     def sharpe(self):
@@ -139,7 +140,7 @@ class Risk(object):
 
     @indicator_property(min_period_count=2, value_when_pc_not_satisfied=0.)
     def downside_risk(self):
-        diff = self._portfolio - self._risk_free_rate_per_period
+        diff = self._portfolio - self._portfolio.mean()
         diff[diff > 0] = 0.
         return (np.sum(np.square(diff)) / (len(diff) - 1)) ** 0.5
 
@@ -187,6 +188,7 @@ class Risk(object):
         return self.param_var(0.05)
 
     def param_var(self, alpha):
+        # 假设价格服从对数正态分布，则收益率亦应服从对数正态分布：https://stats.stackexchange.com/questions/378047/log-normal-returns
         import scipy.stats as stats
         log_return = np.log1p(self._portfolio)
         mean = np.mean(log_return)
