@@ -119,11 +119,13 @@ class Risk(object):
             return np.nan
         return self.tracking_error * (self._annual_factor ** 0.5)
 
-    @indicator_property(min_period_count=3)
+    @indicator_property(min_period_count=2)
     def information_ratio(self):
         # residual_return / residual_risk
         residual_returns = self._portfolio - self.beta * self._benchmark
         annual_residual_std = residual_returns.std(ddof=1) * np.sqrt(self._annual_factor)
+        if not annual_residual_std:
+            return np.nan
         return (self.annual_return - self.beta * self.benchmark_annual_return) / annual_residual_std
 
     @indicator_property(min_period_count=2)
