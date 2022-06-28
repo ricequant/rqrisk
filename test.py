@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 import rqrisk
-from rqrisk import DAILY, WEEKLY, MONTHLY
+from rqrisk import DAILY, WEEKLY, MONTHLY, NATURAL_DAILY
 
 
 # Simple benchmark, no drawdown
@@ -231,3 +231,14 @@ def test_max_drawdown():
 
     _assert(volatile_returns, zero_benchmark, 0.10899999999999994, 0.10899999999999994)
     _assert(volatile_returns, volatile_benchmark, 0.10899999999999994, 0.20000000000000007)
+
+
+def test_natural_daily():
+    """ 测试自然日 """
+    r = _r(volatile_returns, volatile_benchmark, 0, NATURAL_DAILY)
+    assert_almost_equal(r.annual_return, -0.41377394067925255)
+    assert_almost_equal(r.benchmark_annual_return, 92.86171734511149)
+    assert_almost_equal(r.alpha, 62.31947511024051)
+    assert_almost_equal(r.information_ratio, 97.92626812366308)
+    assert_almost_equal(r.sharpe, -0.23942084288518412)
+
