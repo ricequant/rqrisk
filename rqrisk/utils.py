@@ -50,16 +50,19 @@ def indicator_property(min_period_count=None, value_when_pc_not_satisfied=np.nan
 MONTHS_PER_YEAR = 12
 WEEKS_PER_YEAR = 52
 APPROX_BDAYS_PER_YEAR = 252
+DAYS_PER_YEAR = 365
 
 DAILY = 'daily'
 WEEKLY = 'weekly'
 MONTHLY = 'monthly'
 YEARLY = 'yearly'
+NATURAL_DAILY = "natural_daily"
 
 ANNUALIZATION_FACTORS = {
     DAILY: APPROX_BDAYS_PER_YEAR,
     WEEKLY: WEEKS_PER_YEAR,
-    MONTHLY: MONTHS_PER_YEAR
+    MONTHLY: MONTHS_PER_YEAR,
+    NATURAL_DAILY: DAYS_PER_YEAR
 }
 
 
