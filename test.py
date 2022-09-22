@@ -242,3 +242,23 @@ def test_natural_daily():
     assert_almost_equal(r.information_ratio, 97.92626812366308)
     assert_almost_equal(r.sharpe, -0.23942084288518412)
 
+
+def test_win_rate():
+    """ 测试胜率 """
+    def _assert(returns, benchmark, desired_win_rate):
+        assert_almost_equal(_r(returns, benchmark, 0).win_rate, desired_win_rate)
+
+    _assert(volatile_returns, volatile_benchmark, 0.6666666666666666)
+    _assert(positive_returns, volatile_benchmark, 1)
+    _assert(negative_returns, volatile_benchmark, 0)
+
+
+def test_excess_win_rate():
+    """ 测试超额胜率 """
+    def _assert(returns, benchmark, desired_win_rate):
+        assert_almost_equal(_r(returns, benchmark, 0).excess_win_rate, desired_win_rate)
+
+    _assert(volatile_returns, volatile_benchmark, 0.4444444444444444)
+    _assert(positive_returns, zero_benchmark, 1)
+    _assert(negative_returns, zero_benchmark, 0)
+
