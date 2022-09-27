@@ -201,6 +201,10 @@ class Risk(object):
 
     @indicator_property(min_period_count=1)
     def win_rate(self):
+        return len(self._portfolio[self._portfolio > 0]) / self.period_count
+
+    @indicator_property(min_period_count=1)
+    def excess_win_rate(self):
         return len(self._portfolio[self._portfolio > self._benchmark]) / self.period_count
 
     def all(self):
