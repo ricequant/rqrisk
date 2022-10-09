@@ -136,9 +136,17 @@ class Risk(object):
         return safe_div(np.sqrt(self._annual_factor) * self._avg_excess_return, std_excess_return)
 
     @indicator_property()
+    def sharpe_by_annual_returns(self):
+        return safe_div(self.annual_return - self._risk_free_rate, self.annual_volatility)
+
+    @indicator_property()
     def excess_sharpe(self):
         # sharpe ratio of active returns
         return safe_div(np.sqrt(self._annual_factor) * np.mean(self._active_returns), self.tracking_error)
+
+    @indicator_property()
+    def excess_sharpe_by_annual_returns(self):
+        return safe_div(self.excess_annual_return, self.annual_tracking_error)
 
     @indicator_property(min_period_count=2, value_when_pc_not_satisfied=0.)
     def downside_risk(self):
