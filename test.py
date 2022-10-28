@@ -73,6 +73,11 @@ volatile_weekly_benchmark = pd.Series(
     index=pd.date_range('2000-1-30', periods=9, freq='W')
 )
 
+volatile_monthly_benchmark = pd.Series(
+    np.array([1, 2, -5, 3, 10, -3, -1, 4, 1]) / 100,
+    index=pd.date_range('2000-1-30', periods=9, freq='M')
+)
+
 
 def _r(returns, benchmark_returns, risk_free_rate, period=DAILY):
     if benchmark_returns is None:
@@ -262,3 +267,19 @@ def test_excess_win_rate():
     _assert(positive_returns, zero_benchmark, 1)
     _assert(negative_returns, zero_benchmark, 0)
 
+
+def test_correlation():
+    """ 测试相关系数 """
+    def _assert(returns, benchmark, period):
+        r = _r(returns, benchmark, 0, period)
+        assert_almost_equal(r.correlation, returns.corr(benchmark))
+
+    _assert(one_return, one_benchmark, DAILY)                       # np.nan
+    _assert(positive_returns, simple_benchmark, DAILY)              # np.nan
+    _assert(positive_returns, volatile_benchmark, DAILY)            # 0.05773502691896258
+    _assert(negative_returns, simple_benchmark, DAILY)              # np.nan
+    _assert(negative_returns, volatile_benchmark, DAILY)            # -0.32984900530449723
+    _assert(weekly_returns, simple_weekly_benchamrk, WEEKLY)        # np.nan
+    _assert(weekly_returns, volatile_weekly_benchmark, WEEKLY)      # -0.3411258215912419
+    _assert(monthly_returns, simple_monthly_benchamrk, MONTHLY)     # np.nan
+    _assert(monthly_returns, volatile_monthly_benchmark, MONTHLY)   # -0.3411258215912419

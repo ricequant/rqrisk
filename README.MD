@@ -70,5 +70,6 @@ Out[4]:
  'excess_annual_volatility': 0.14574262245479186,
  'excess_max_drawdown': 0.050301584825935344,
  'var': 0.025161857442751474,
- 'win_rate': 0.3}
+ 'win_rate': 0.3,
+ 'correlation': 0.7136492542281812}
 ```

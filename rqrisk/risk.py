@@ -207,5 +207,10 @@ class Risk(object):
     def excess_win_rate(self):
         return len(self._portfolio[self._portfolio > self._benchmark]) / self.period_count
 
+    @indicator_property(min_period_count=2)
+    def correlation(self):
+        # 相关系数算法参考 https://numpy.org/doc/stable/reference/generated/numpy.corrcoef.html?highlight=corr#numpy.corrcoef
+        return np.corrcoef(self._portfolio, self._benchmark)[0][1]
+
     def all(self):
         return {k: getattr(self, k) for k, v in self.__class__.__dict__.items() if isinstance(v, IndicatorProperty)}
