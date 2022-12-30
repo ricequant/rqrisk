@@ -97,9 +97,15 @@ class Risk(object):
         return self.benchmark_volatility * (self._annual_factor ** 0.5)
 
     @staticmethod
-    def _calc_max_drawdown(returns):
+    def _calc_cum(returns):
+        """ 计算累计净值 """
         returns = [0] + list(returns)
         df_cum = np.exp(np.log1p(returns).cumsum())
+        return df_cum
+
+    @classmethod
+    def _calc_max_drawdown(cls, returns):
+        df_cum = cls._calc_cum(returns)
         max_return = np.maximum.accumulate(df_cum)
         return abs(((df_cum - max_return) / max_return).min())
 
@@ -211,6 +217,34 @@ class Risk(object):
     def correlation(self):
         # 相关系数算法参考 https://numpy.org/doc/stable/reference/generated/numpy.corrcoef.html?highlight=corr#numpy.corrcoef
         return np.corrcoef(self._portfolio, self._benchmark)[0][1]
+
+    @classmethod
+    def _calc_ulcer_index(cls, returns):
+        """ 累计回撤深度  相关计算公式参考：http://www.tangotools.com/ui/ui.htm """
+        cum = cls._calc_cum(returns)
+        drawdown_squared = ((cum / np.maximum.accumulate(cum) - 1) * 100) ** 2
+        return (np.sum(drawdown_squared) / len(cum)) ** 0.5
+
+    @indicator_property()
+    def ulcer_index(self):
+        return self._calc_ulcer_index(self._portfolio)
+
+    @indicator_property()
+    def excess_ulcer_index(self):
+        return self._calc_ulcer_index(self._active_returns)
+
+    def _calc_ulcer_performance_index(self, returns, ulcer_index):
+        """ 累计回撤夏普率 相关计算公式参考：http://www.tangotools.com/ui/ui.htm """
+        _return_rate = np.expm1(np.log1p(returns - self._risk_free_rate_per_period).sum())
+        return safe_div(_return_rate, ulcer_index)
+
+    @indicator_property()
+    def ulcer_performance_index(self):
+        return self._calc_ulcer_performance_index(self._portfolio, self.ulcer_index)
+
+    @indicator_property()
+    def excess_ulcer_performance_index(self):
+        return self._calc_ulcer_performance_index(self._active_returns, self.excess_ulcer_index)
 
     def all(self):
         return {k: getattr(self, k) for k, v in self.__class__.__dict__.items() if isinstance(v, IndicatorProperty)}
