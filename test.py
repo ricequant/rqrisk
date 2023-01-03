@@ -283,3 +283,28 @@ def test_correlation():
     _assert(weekly_returns, volatile_weekly_benchmark, WEEKLY)      # -0.3411258215912419
     _assert(monthly_returns, simple_monthly_benchamrk, MONTHLY)     # np.nan
     _assert(monthly_returns, volatile_monthly_benchmark, MONTHLY)   # -0.3411258215912419
+
+
+def test_ulcer_index():
+    """ 测试累计回撤深度 """
+
+    def _assert(returns, benchmark, ulcer_index):
+        r = _r(returns, benchmark, 0)
+        assert_almost_equal(r.ulcer_index, ulcer_index)
+
+    _assert(positive_returns, simple_benchmark, 0)
+    _assert(negative_returns, simple_benchmark, 21.319872051737)
+    _assert(weekly_returns, simple_weekly_benchamrk, 3.4688095940826726)
+
+
+def test_ulcer_performance_index():
+    """ 测试累计回撤夏普率 """
+
+    def _assert(returns, benchmark, ulcer_performance_index):
+        r = _r(returns, benchmark, 0)
+        assert_almost_equal(r.ulcer_performance_index, ulcer_performance_index)
+
+    _assert(positive_returns, simple_benchmark, np.nan)
+    _assert(negative_returns, simple_benchmark, -0.019864148204580486)
+    _assert(weekly_returns, simple_weekly_benchamrk, -0.014606674809517502)
+
