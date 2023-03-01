@@ -305,6 +305,19 @@ def test_ulcer_performance_index():
         assert_almost_equal(r.ulcer_performance_index, ulcer_performance_index)
 
     _assert(positive_returns, simple_benchmark, np.nan)
-    _assert(negative_returns, simple_benchmark, -0.019864148204580486)
-    _assert(weekly_returns, simple_weekly_benchamrk, -0.014606674809517502)
+    _assert(negative_returns, simple_benchmark, -0.017162734495347234)
+    _assert(weekly_returns, simple_weekly_benchamrk, 0.011223184970109419)
+
+
+def test_excess_index():
+
+    def _assert(returns, benchmark, arithmetic_excess_return, geometric_excess_return, geometric_excess_annual_return):
+        r = _r(returns, benchmark, 0)
+        assert_almost_equal(r.arithmetic_excess_return, arithmetic_excess_return)
+        assert_almost_equal(r.geometric_excess_return, geometric_excess_return)
+        assert_almost_equal(r.geometric_excess_annual_return, geometric_excess_annual_return)
+
+    _assert(one_return, one_benchmark, 0, 0, 0)
+    _assert(simple_benchmark, zero_benchmark, 0.0936852726843609, 0.09368527268436089, 11.274002099240212)
+
 

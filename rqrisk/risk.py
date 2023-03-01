@@ -22,7 +22,7 @@ import warnings
 import numpy as np
 from statsmodels.formula.api import ols
 
-from .utils import indicator_property, IndicatorProperty, annual_factor, safe_div, DAILY
+from .utils import indicator_property, IndicatorProperty, annual_factor, safe_div, DAILY, deprecate_property
 
 
 class Risk(object):
@@ -53,6 +53,18 @@ class Risk(object):
     @indicator_property(min_period_count=1)
     def benchmark_annual_return(self):
         return (1 + self.benchmark_return) ** (self._annual_factor / self.period_count) - 1
+
+    @indicator_property()
+    def arithmetic_excess_return(self):
+        return self.return_rate - self.benchmark_return
+
+    @indicator_property()
+    def geometric_excess_return(self):
+        return (1 + self.return_rate) / (1 + self.benchmark_return) - 1
+
+    @indicator_property()
+    def geometric_excess_annual_return(self):
+        return (1 + self.annual_return) / (1 + self.benchmark_annual_return) - 1
 
     @indicator_property(min_period_count=2)
     def alpha(self):
@@ -104,14 +116,14 @@ class Risk(object):
         return df_cum
 
     @classmethod
-    def _calc_max_drawdown(cls, returns):
-        df_cum = cls._calc_cum(returns)
-        max_return = np.maximum.accumulate(df_cum)
-        return abs(((df_cum - max_return) / max_return).min())
+    def _calc_max_drawdown(cls, cum_nav):
+        max_nav = np.maximum.accumulate(cum_nav)
+        return abs(((cum_nav - max_nav) / max_nav).min())
 
     @indicator_property()
     def max_drawdown(self):
-        return self._calc_max_drawdown(self._portfolio)
+        cum_returns = self._calc_cum(self._portfolio)
+        return self._calc_max_drawdown(cum_returns)
 
     @indicator_property(min_period_count=2, value_when_pc_not_satisfied=0.)
     def tracking_error(self):
@@ -167,12 +179,12 @@ class Risk(object):
         else:
             return self.annual_return / self.max_drawdown
 
-    @indicator_property()
+    @deprecate_property
     def excess_return_rate(self):
         # activate return rate
         return np.expm1(np.log1p(self._active_returns).sum())
 
-    @indicator_property()
+    @deprecate_property
     def excess_annual_return(self):
         # active annual return
         return (1 + self.excess_return_rate) ** (self._annual_factor / self.period_count) - 1
@@ -187,8 +199,14 @@ class Risk(object):
         return self.excess_volatility * (self._annual_factor ** 0.5)
 
     @indicator_property(min_period_count=1)
+    def geometric_excess_drawdown(self):
+        excess = self._calc_cum(self._portfolio) / self._calc_cum(self._benchmark)
+        return self._calc_max_drawdown(excess)
+
+    @indicator_property(min_period_count=1)
     def excess_max_drawdown(self):
-        return self._calc_max_drawdown(self._active_returns)
+        cum_returns = self._calc_cum(self._active_returns)
+        return self._calc_max_drawdown(cum_returns)
 
     @indicator_property()
     def var(self):

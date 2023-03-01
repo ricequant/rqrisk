@@ -16,6 +16,10 @@
 #         详细的授权流程，请联系 public@ricequant.com 获取。
 
 import numpy as np
+import logging
+
+
+logger = logging.getLogger()
 
 
 class IndicatorProperty:
@@ -78,3 +82,14 @@ def safe_div(dividend, divisor):
     if divisor == 0:
         return np.nan
     return dividend / divisor
+
+
+def deprecate_property(func):
+
+    @property
+    def inner(self):
+        logger.warning("\"{}\" is deprecate.".format(func.__name__))
+        return func(self)
+
+    return inner
+
