@@ -199,9 +199,14 @@ class Risk(object):
         return self.excess_volatility * (self._annual_factor ** 0.5)
 
     @indicator_property(min_period_count=1)
-    def excess_max_drawdown(self):
+    def geometric_excess_drawdown(self):
         excess = self._calc_cum(self._portfolio) / self._calc_cum(self._benchmark)
         return self._calc_max_drawdown(excess)
+
+    @indicator_property(min_period_count=1)
+    def excess_max_drawdown(self):
+        cum_returns = self._calc_cum(self._active_returns)
+        return self._calc_max_drawdown(cum_returns)
 
     @indicator_property()
     def var(self):

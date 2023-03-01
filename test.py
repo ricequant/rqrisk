@@ -235,7 +235,7 @@ def test_max_drawdown():
         assert_almost_equal(r.excess_max_drawdown, desired_excess_max_dd)
 
     _assert(volatile_returns, zero_benchmark, 0.10899999999999994, 0.10899999999999994)
-    _assert(volatile_returns, volatile_benchmark, 0.10899999999999994, 0.1818181818181816)
+    _assert(volatile_returns, volatile_benchmark, 0.10899999999999994, 0.20000000000000007)
 
 
 def test_natural_daily():
