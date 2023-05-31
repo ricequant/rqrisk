@@ -179,15 +179,23 @@ class Risk(object):
         else:
             return self.annual_return / self.max_drawdown
 
-    @deprecate_property
-    def excess_return_rate(self):
-        # activate return rate
+    @indicator_property(min_period_count=1)
+    def _excess_return_rate(self):
         return np.expm1(np.log1p(self._active_returns).sum())
 
     @deprecate_property
+    def excess_return_rate(self):
+        # activate return rate
+        return self._excess_return_rate
+
+    @deprecate_property
     def excess_annual_return(self):
+        return self._excess_annual_return
+
+    @indicator_property(min_period_count=1)
+    def _excess_annual_return(self):
         # active annual return
-        return (1 + self.excess_return_rate) ** (self._annual_factor / self.period_count) - 1
+        return (1 + self._excess_return_rate) ** safe_div(self._annual_factor, self.period_count) - 1
 
     @indicator_property(min_period_count=2, value_when_pc_not_satisfied=0.)
     def excess_volatility(self):
