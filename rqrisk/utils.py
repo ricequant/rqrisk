@@ -16,10 +16,7 @@
 #         详细的授权流程，请联系 public@ricequant.com 获取。
 
 import numpy as np
-import logging
-
-
-logger = logging.getLogger()
+import warnings
 
 
 class IndicatorProperty:
@@ -88,7 +85,7 @@ def deprecate_property(func):
 
     @property
     def inner(self):
-        logger.warning("\"{}\" is deprecate.".format(func.__name__))
+        warnings.warn("'{}' is deprecate.".format(func.__name__))
         return func(self)
 
     return inner
