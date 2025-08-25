@@ -26,13 +26,17 @@ from .utils import indicator_property, IndicatorProperty, annual_factor, safe_di
 
 
 class Risk(object):
-    def __init__(self, daily_returns, benchmark_daily_returns, risk_free_rate, period=DAILY):
+    def __init__(self, daily_returns, benchmark_daily_returns, risk_free_rate, period=DAILY, trading_days_a_year=None):
         assert (len(daily_returns) == len(benchmark_daily_returns))
         self.period_count = len(daily_returns)
 
         self._portfolio = daily_returns
         self._benchmark = benchmark_daily_returns
-        self._annual_factor = annual_factor(period)
+        # if period is DAILY, then use trading_days_a_year to calculate annual_factor
+        if period == DAILY and trading_days_a_year is not None:
+            self._annual_factor = trading_days_a_year
+        else:
+            self._annual_factor = annual_factor(period)
         self._risk_free_rate = risk_free_rate
         self._risk_free_rate_per_period = (1 + risk_free_rate) ** (1 / self._annual_factor) - 1
         self._avg_excess_return = np.mean(daily_returns) - self._risk_free_rate_per_period
