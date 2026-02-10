@@ -1,9 +1,13 @@
 from .risk import Risk
 from .utils import DAILY, WEEKLY, MONTHLY, YEARLY, NATURAL_DAILY
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("rqrisk")
+except PackageNotFoundError:
+    # 开发模式下，如果包未安装
+    __version__ = "0.0.0.dev0"
 
 __all__ = [
     "Risk",
