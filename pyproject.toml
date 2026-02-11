@@ -26,6 +26,7 @@ dependencies = [
     "numpy",
     "scipy",
     "statsmodels>=0.13.1",
+    "importlib_metadata; python_version<'3.8'",
 ]
 
 [project.urls]

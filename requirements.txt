@@ -1,4 +1,3 @@
 numpy
 scipy
 statsmodels>=0.13.1
-importlib
